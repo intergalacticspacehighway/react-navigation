@@ -21,6 +21,7 @@ import type {
 import { useAnimatedValue } from './useAnimatedValue';
 
 type Props<T extends Route> = PagerProps & {
+  PagerView?: React.ComponentType<PagerProps>;
   layout: Layout;
   onIndexChange: (index: number) => void;
   onTabSelect?: (props: { index: number }) => void;

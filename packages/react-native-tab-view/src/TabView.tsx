@@ -24,6 +24,7 @@ import type {
 
 export type Props<T extends Route> = Omit<PagerProps, 'layoutDirection'> & {
   onIndexChange: (index: number) => void;
+  PagerView?: React.ComponentType<PagerProps>;
   onTabSelect?: (props: { index: number }) => void;
   navigationState: NavigationState<T>;
   renderLazyPlaceholder?: (props: { route: T }) => React.ReactNode;
@@ -58,6 +59,7 @@ export function TabView<T extends Route>({
   lazyPreloadDistance = 0,
   onSwipeStart,
   onSwipeEnd,
+  onPageScroll,
   renderLazyPlaceholder = renderLazyPlaceholderDefault,
   // eslint-disable-next-line @eslint-react/no-unstable-default-props
   renderTabBar = (props) => <TabBar {...props} />,
@@ -68,6 +70,7 @@ export function TabView<T extends Route>({
   tabBarPosition = 'top',
   animationEnabled = true,
   overScrollMode,
+  PagerView,
   options: sceneOptions,
   commonOptions,
 }: Props<T>) {
@@ -120,10 +123,12 @@ export function TabView<T extends Route>({
     <View onLayout={handleLayout} style={[styles.pager, style]}>
       <Pager
         layout={layout}
+        PagerView={PagerView}
         navigationState={navigationState}
         keyboardDismissMode={keyboardDismissMode}
         swipeEnabled={swipeEnabled}
         onSwipeStart={onSwipeStart}
+        onPageScroll={onPageScroll}
         onSwipeEnd={onSwipeEnd}
         onIndexChange={jumpToIndex}
         onTabSelect={onTabSelect}

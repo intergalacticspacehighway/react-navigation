@@ -73,7 +73,6 @@ export type PagerProps = Omit<
   PagerViewProps,
   | 'initialPage'
   | 'scrollEnabled'
-  | 'onPageScroll'
   | 'onPageSelected'
   | 'onPageScrollStateChanged'
   | 'keyboardDismissMode'

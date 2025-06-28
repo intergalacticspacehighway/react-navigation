@@ -14,9 +14,8 @@ import type {
 } from './types';
 import { useAnimatedValue } from './useAnimatedValue';
 
-const AnimatedViewPager = Animated.createAnimatedComponent(ViewPager);
-
 type Props<T extends Route> = PagerProps & {
+  PagerView?: React.ComponentType<PagerProps>;
   onIndexChange: (index: number) => void;
   onTabSelect?: (props: { index: number }) => void;
   navigationState: NavigationState<T>;
@@ -36,6 +35,7 @@ type Props<T extends Route> = PagerProps & {
 };
 
 export function PagerViewAdapter<T extends Route>({
+  PagerView,
   keyboardDismissMode = 'auto',
   swipeEnabled = true,
   navigationState,
@@ -44,6 +44,7 @@ export function PagerViewAdapter<T extends Route>({
   onSwipeStart,
   onSwipeEnd,
   children,
+  onPageScroll,
   style,
   animationEnabled,
   ...rest
@@ -161,14 +162,18 @@ export function PagerViewAdapter<T extends Route>({
     [offset, position]
   );
 
+  const PagerComponent = PagerView ?? ViewPager;
+
   return children({
     position: memoizedPosition,
     addEnterListener,
     jumpTo,
     render: (children) => (
-      <AnimatedViewPager
+      <PagerComponent
         {...rest}
+        // @ts-expect-error: for testing
         ref={pagerRef}
+        onPageScroll={onPageScroll}
         style={[styles.container, style]}
         initialPage={index}
         keyboardDismissMode={
@@ -184,7 +189,7 @@ export function PagerViewAdapter<T extends Route>({
         scrollEnabled={swipeEnabled}
       >
         {children}
-      </AnimatedViewPager>
+      </PagerComponent>
     ),
   });
 }
