@@ -47,6 +47,7 @@ export function PagerViewAdapter<T extends Route>({
   onPageScroll,
   style,
   animationEnabled,
+  interpolatedPosition,
   ...rest
 }: Props<T>) {
   const { index } = navigationState;
@@ -56,9 +57,6 @@ export function PagerViewAdapter<T extends Route>({
   const pagerRef = React.useRef<ViewPager>(null);
   const indexRef = React.useRef<number>(index);
   const navigationStateRef = React.useRef(navigationState);
-
-  const position = useAnimatedValue(index);
-  const offset = useAnimatedValue(0);
 
   React.useEffect(() => {
     navigationStateRef.current = navigationState;
@@ -73,35 +71,11 @@ export function PagerViewAdapter<T extends Route>({
       pagerRef.current?.setPage(index);
     } else {
       pagerRef.current?.setPageWithoutAnimation(index);
-      position.setValue(index);
+      // position.setValue(index);
     }
 
     onIndexChange(index);
   });
-
-  React.useEffect(() => {
-    let subscription: { detach: () => void } | null = null;
-    if (pagerRef.current) {
-      // @ts-expect-error - Typescript types are missing but this API is exported by Animated since React Native 0.60.2
-      // https://github.com/facebook/react-native/commit/77b8c097277b5cf248d08e772ea8bb8d8583e9a1
-      // It allows to attach native event using native element's ref instead of passing in an event callback
-      subscription = Animated.attachNativeEvent(
-        pagerRef.current,
-        'onPageScroll',
-        [
-          {
-            nativeEvent: {
-              position: position,
-              offset: offset,
-            },
-          },
-        ]
-      );
-    }
-    return () => {
-      subscription?.detach();
-    };
-  }, [offset, position]);
 
   React.useEffect(() => {
     if (keyboardDismissMode === 'auto') {
@@ -113,37 +87,10 @@ export function PagerViewAdapter<T extends Route>({
         pagerRef.current?.setPage(index);
       } else {
         pagerRef.current?.setPageWithoutAnimation(index);
-        position.setValue(index);
+        // position.setValue(index);
       }
     }
-  }, [keyboardDismissMode, index, animationEnabled, position]);
-
-  const onPageScrollStateChanged = (
-    state: PageScrollStateChangedNativeEvent
-  ) => {
-    const { pageScrollState } = state.nativeEvent;
-
-    switch (pageScrollState) {
-      case 'idle':
-        onSwipeEnd?.();
-        return;
-      case 'dragging': {
-        const subscription = offset.addListener(({ value }) => {
-          const next =
-            index + (value > 0 ? Math.ceil(value) : Math.floor(value));
-
-          if (next !== index) {
-            listenersRef.current.forEach((listener) => listener(next));
-          }
-
-          offset.removeListener(subscription);
-        });
-
-        onSwipeStart?.();
-        return;
-      }
-    }
-  };
+  }, [keyboardDismissMode, index, animationEnabled]);
 
   const addEnterListener = useLatestCallback((listener: Listener) => {
     listenersRef.current.push(listener);
@@ -157,15 +104,10 @@ export function PagerViewAdapter<T extends Route>({
     };
   });
 
-  const memoizedPosition = React.useMemo(
-    () => Animated.add(position, offset),
-    [offset, position]
-  );
-
   const PagerComponent = PagerView ?? ViewPager;
 
   return children({
-    position: memoizedPosition,
+    position: interpolatedPosition,
     addEnterListener,
     jumpTo,
     render: (children) => (
@@ -185,7 +127,7 @@ export function PagerViewAdapter<T extends Route>({
           onIndexChange(index);
           onTabSelect?.({ index });
         }}
-        onPageScrollStateChanged={onPageScrollStateChanged}
+        onPageScrollStateChanged={() => {}}
         scrollEnabled={swipeEnabled}
       >
         {children}

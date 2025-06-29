@@ -4,11 +4,9 @@ import type { PathConfigMap } from '@react-navigation/native';
 import { Albums } from '../Shared/Albums';
 import { Chat } from '../Shared/Chat';
 import { Contacts } from '../Shared/Contacts';
-import { useHandler, useSharedValue } from 'react-native-reanimated';
+import { useHandler } from 'react-native-reanimated';
 import { useEvent } from 'react-native-reanimated';
-import ViewPager from 'react-native-pager-view';
-import Reanimated from 'react-native-reanimated';
-const ReanimatedPagerView = Reanimated.createAnimatedComponent(ViewPager);
+import { Dimensions, Animated } from 'react-native';
 
 function usePageScrollHandler(handlers: any, dependencies: any) {
   const { context, doDependenciesDiffer } = useHandler(handlers, dependencies);
@@ -44,24 +42,40 @@ const MaterialTopTabs = createMaterialTopTabNavigator<MaterialTopTabParams>();
 
 const ChatScreen = () => <Chat bottom />;
 
-export function MaterialTopTabsScreen() {
-  const offset = useSharedValue(0);
+const offset = new Animated.Value(0);
 
-  const pageScrollHandler = usePageScrollHandler(
-    {
-      onPageScroll: (e: any) => {
-        'worklet';
-        offset.value = e.offset;
-        console.log(e.offset, e.position);
-      },
-    },
-    [offset]
+const CustomPager = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Animated.ScrollView
+      horizontal
+      pagingEnabled
+      onScroll={Animated.event(
+        [{ nativeEvent: { contentOffset: { x: offset } } }],
+        { useNativeDriver: true }
+      )}
+      style={{
+        flex: 1,
+        height: Dimensions.get('window').height,
+        width: Dimensions.get('window').width,
+      }}
+    >
+      {children}
+    </Animated.ScrollView>
   );
-
+};
+export function MaterialTopTabsScreen() {
   return (
     <MaterialTopTabs.Navigator
-      onPageScroll={pageScrollHandler}
-      PagerView={ReanimatedPagerView as any}
+      PagerView={CustomPager as any}
+      interpolatedPosition={offset.interpolate({
+        inputRange: [
+          0,
+          Dimensions.get('window').width,
+          Dimensions.get('window').width * 2,
+          Dimensions.get('window').width * 3,
+        ],
+        outputRange: [0, 1, 2, 3],
+      })}
     >
       <MaterialTopTabs.Screen
         name="Chat"

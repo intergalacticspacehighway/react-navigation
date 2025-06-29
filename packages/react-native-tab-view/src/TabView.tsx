@@ -73,6 +73,7 @@ export function TabView<T extends Route>({
   PagerView,
   options: sceneOptions,
   commonOptions,
+  interpolatedPosition,
 }: Props<T>) {
   if (
     Platform.OS !== 'web' &&
@@ -136,6 +137,7 @@ export function TabView<T extends Route>({
         overScrollMode={overScrollMode}
         style={pagerStyle}
         layoutDirection={direction}
+        interpolatedPosition={interpolatedPosition}
       >
         {({ position, render, addEnterListener, jumpTo }) => {
           // All the props here must not change between re-renders
